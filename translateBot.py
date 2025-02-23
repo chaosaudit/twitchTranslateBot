@@ -4,21 +4,18 @@ import requests
 import argparse
 
 parser = argparse.ArgumentParser(
-                    prog='titchTranslateBot',
+                    prog='https://github.com/chaosaudit/twitchTranslateBot',
                     description='Twitch bot using twitchio and Google Translate python libraries to detect the language of comments and automatically translate to a desired language.',
                     epilog='Requires twitchio 2.10.0, will not work with 3.0')
 
-parser.add_argument('-a', '--access_token')
+parser.add_argument('-a', '--access_token', help='https://twitchtokengenerator.com')
 parser.add_argument('-c', '--channel', action="append", help="Specify a channel to join, can be used multiple times")
-
 args = parser.parse_args()
-print(args.channel)
-quit()
 
-# ACCESS_TOKEN = sys.argv[1]
+print(f'Connecting to: {args.channel}')
 
 # The bot will run in the channels listed here, can run in multiple channels at once, e.g. "channels = ['channel_1', 'channel_2']"
-channels = ['chaosaudit'] 
+channels = args.channel 
 
  # This is the language that the autotranslate will use by default. 
  # List of codes can be found at https://developers.google.com/admin-sdk/directory/v1/languages
@@ -46,9 +43,9 @@ class Bot(commands.Bot):
 
     def __init__(self):
         super().__init__(
-            token=ACCESS_TOKEN,
+            token=args.access_token,
             prefix='!',
-            initial_channels=channels
+            initial_channels=args.channel
             )
 
     async def event_ready(self):
