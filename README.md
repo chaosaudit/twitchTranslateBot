@@ -30,3 +30,7 @@ By default the bot will attempt to detect all comments that aren't English and t
 use "!autotranslate on/off" in chat to toggle the automatic detection.
 "!translate to:<language_code> <message>" can be used to translate a message into a specific language
 
+# Alternate version
+
+The alternate version of the bot is aimed at bi-lingual friendly streams, any message determined to be one language, will be translated to another, and vice versa.
+e.g. All English messages will be translated to German, and all German messages will be translated to English.

@@ -17,9 +17,10 @@ print(f'Connecting to: {args.channel}')
 # The bot will run in the channels listed here, can run in multiple channels at once, e.g. "channels = ['channel_1', 'channel_2']"
 channels = args.channel 
 
- # This is the language that the autotranslate will use by default. 
- # List of codes can be found at https://developers.google.com/admin-sdk/directory/v1/languages
-destination_language = 'en'
+
+# The bot will automatically translate all messages from one language into the other, and vice versa
+language_one = "en"
+language_two = "de"
 
 
 # This should automatically populate with all global, local and bttv emotes when the bot is launched, but
@@ -94,9 +95,11 @@ class Bot(commands.Bot):
                     print(f'# Cleaned message: {cleaned_message}')
 
                 detection = translator.detect(cleaned_message)
-                if detection.lang != destination_language and float(detection.confidence) > 0.85:
-                    translation = translator.translate(cleaned_message, dest=destination_language)
-                    print(f"{detection} | {translation}")
+                if detection.lang != language_two and float(detection.confidence) > 0.85:
+                    translation = translator.translate(cleaned_message, dest=language_two)
+                    await message.channel.send(f'autotranslate | src={detection.lang} | {message.author.name}: "{translation.text}"')
+                if detection.lang != language_one and float(detection.confidence) > 0.85:
+                    translation = translator.translate(cleaned_message, dest=language_one)
                     await message.channel.send(f'autotranslate | src={detection.lang} | {message.author.name}: "{translation.text}"')
                 else:
                     if detection.confidence < 0.85:
