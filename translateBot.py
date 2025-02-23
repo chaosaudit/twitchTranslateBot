@@ -59,6 +59,9 @@ class Bot(commands.Bot):
 
     # Everything under event_message will be run each time a new comment is seen in chat
     async def event_message(self, message):
+
+        print(f'[{message.channel}] - {message.author}: {message.content}')
+
         
         global previous_message, statusAutotranslate
 
@@ -69,8 +72,6 @@ class Bot(commands.Bot):
         
         if message.content != '!translate':
             previous_message = message.content
-
-        print(message.content)
 
         if statusAutotranslate:
             try:
