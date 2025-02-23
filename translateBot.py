@@ -7,13 +7,10 @@ import json
 with open('C:\\VMs\\creds.json', "r") as infile:
     creds_dict = json.loads(infile.read())
 
-channels = ['chaosaudit', 'nyxipuff']
+channels = ['chaosaudit'] # The bot will run in the channels listed here
+destination_language = 'en'
 
-ACCESS_TOKEN: str = creds_dict['language_butt']['accessToken'] #  https://twitchtokengenerator.com/
-
-# Change this to False to have autotranslate turned off by default when the bot is started.
-statusAutotranslate = True
-
+ACCESS_TOKEN: str = creds_dict['language_butt']['accessToken'] #  Access token can be generated from https://twitchtokengenerator.com/
 
 # Any words added to this list will be stripped from any message before language detection / translation. 
 # Can be used to ignore words that often cause a mistranslation, emote names, usernames etc...
@@ -25,6 +22,9 @@ word_ignore_list = []
 # This allows people to use "!translate" on it's own to translate the
 # message that was sent by the previous chatter.
 previous_message = ""
+
+
+statusAutotranslate = True # Translation on by default, chage to False for off by default
 
 # twitchio bot and command handler.
 class Bot(commands.Bot):
@@ -52,16 +52,15 @@ class Bot(commands.Bot):
         for channel_name in channels:
             channel = await self.fetch_channel(channel_name)
             fetch_channel_emotes(channel.user.id, channel_name)
-            fetch_bttv_emotes(channel_name)
+            fetch_channel_bttv_emotes(channel_name)
 
         print(f'{len(word_ignore_list)} total ignored words')
         print(f'\n##### awaiting messages #####\n')
 
     # Everything under event_message will be run each time a new comment is seen in chat
     async def event_message(self, message):
-        global statusAutotranslate
-
-        global previous_message
+        
+        global previous_message, statusAutotranslate
 
         # Ignore our own messages
         if message.echo:
@@ -78,12 +77,18 @@ class Bot(commands.Bot):
                 async with Translator() as translator:
                     cleaned_message = [word for word in str(message.content).split() if word not in word_ignore_list]
                     cleaned_message = " ".join(cleaned_message)
-                    print(f'Cleaned message: {cleaned_message}')
+
+                    if cleaned_message != str(message.content):
+                        print(f'# Cleaned message: {cleaned_message}')
+
                     detection = await translator.detect(cleaned_message)
-                    if detection.lang != "en" and float(detection.confidence) > 0.85:
-                        translation = await translator.translate(cleaned_message, dest="en")
+                    if detection.lang != destination_language and float(detection.confidence) > 0.85:
+                        translation = await translator.translate(cleaned_message, dest=destination_language)
                         print(f"{detection} | {translation}")
-                        await message.channel.send(f'src={detection.lang} | {message.author.name}: "{translation.text}"') 
+                        await message.channel.send(f'autotranslate | src={detection.lang} | {message.author.name}: "{translation.text}"')
+                    else:
+                        if detection.confidence < 0.85:
+                            print(f'## Unable to determine language ##: {message.content}')
             except Exception as e:
                 print(e)
 
@@ -190,7 +195,7 @@ def fetch_global_bttv_emotes():
     print(f'{len(response)} global bttv emotes added to ignore list')
 
 
-def fetch_bttv_emotes(channel_name):
+def fetch_channel_bttv_emotes(channel_name):
     global word_ignore_list
     response = requests.get(f'https://twitch.center/customapi/bttvemotes?channel={channel_name}').text
     emotes = response.split()
