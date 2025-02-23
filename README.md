@@ -1,7 +1,7 @@
 # twitchTranslateBot
 Twitch bot using twitchio and Google Translate python libraries to detect the language of comments and automatically translate to a desired language.
 
-The script generate grab a list of global/local channel emotes from twitch and bttv and strip these from comments in an effort to increase the accuracy of the language detection.
+The script generates a list of global/local channel emotes from twitch and bttv and strip these from comments in an effort to increase the accuracy of the language detection.
 
 # Requirements
 

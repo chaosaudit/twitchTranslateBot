@@ -1,20 +1,35 @@
 from twitchio.ext import commands
 from googletrans import Translator
 import requests
+import argparse
 
-import json
+parser = argparse.ArgumentParser(
+                    prog='titchTranslateBot',
+                    description='Twitch bot using twitchio and Google Translate python libraries to detect the language of comments and automatically translate to a desired language.',
+                    epilog='Requires twitchio 2.10.0, will not work with 3.0')
 
-with open('C:\\VMs\\creds.json', "r") as infile:
-    creds_dict = json.loads(infile.read())
+parser.add_argument('-a', '--access_token')
+parser.add_argument('-c', '--channel', action="append", help="Specify a channel to join, can be used multiple times")
 
-channels = ['chaosaudit'] # The bot will run in the channels listed here
+args = parser.parse_args()
+print(args.channel)
+quit()
+
+# ACCESS_TOKEN = sys.argv[1]
+
+# The bot will run in the channels listed here, can run in multiple channels at once, e.g. "channels = ['channel_1', 'channel_2']"
+channels = ['chaosaudit'] 
+
+ # This is the language that the autotranslate will use by default. 
+ # List of codes can be found at https://developers.google.com/admin-sdk/directory/v1/languages
 destination_language = 'en'
 
-ACCESS_TOKEN: str = creds_dict['language_butt']['accessToken'] #  Access token can be generated from https://twitchtokengenerator.com/
 
+# This should automatically populate with all global, local and bttv emotes when the bot is launched, but
+# words can also be added manually here.
 # Any words added to this list will be stripped from any message before language detection / translation. 
 # Can be used to ignore words that often cause a mistranslation, emote names, usernames etc...
-# This should automatically populate with all global, channel and bttv emotes when the bot is launched.
+
 word_ignore_list = []
 
 
