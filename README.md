@@ -5,7 +5,7 @@ The script generates a list of global/local channel emotes from twitch and bttv 
 
 # Requirements
 
-Python version 3.8 or higher and the following packages. 
+Python version 3.8 or higher and twitchio version 2 (tested with twitchio==2.10.0). 
 
 https://www.python.org/
 
