@@ -19,14 +19,14 @@ Clone or download the git repo
 git clone https://github.com/chaosaudit/twitchTranslateBot
 cd twitchTranslateBot
 pip install -r requirements.txt
+python3 translateBot.py -a <access_token> -c <channel>
 ```
 The bot will not currently work with twitchio 3.
 
-
-python3 translateBot.py -a <access_token> -c <channel>
-
-to join multiple channels pass the -c argument once for each channel e.g. -c <channel_one> -c <channel_two>
+To join multiple channels pass the -c argument once for each channel e.g. -c <channel_one> -c <channel_two>
 
 By default the bot will attempt to detect all comments that aren't English and translate them into English
 
 use "!autotranslate on/off" in chat to toggle the automatic detection.
+"!translate to:<language_code> <message>" can be used to translate a message into a specific language
+

@@ -71,37 +71,37 @@ class Bot(commands.Bot):
 
     # Everything under event_message will be run each time a new comment is seen in chat
     async def event_message(self, message):
-
-        print(f'[{message.channel}] - {message.author}: {message.content}')
-
-        
         global previous_message, statusAutotranslate
 
         # Ignore our own messages
         if message.echo:
             previous_message = message.content
             return
-        
+
+        # Do not overwrite the previous message if the translate command is used on it's own.
         if message.content != '!translate':
             previous_message = message.content
+        
+        print(f'[{message.channel.name}] - {message.author.name}: {message.content}')
 
-        if statusAutotranslate:
+        if statusAutotranslate and str(message.content).split()[0] != '!translate':
             try:
-                async with Translator() as translator:
-                    cleaned_message = [word for word in str(message.content).split() if word not in word_ignore_list]
-                    cleaned_message = " ".join(cleaned_message)
+                translator = Translator()
+                print('test')
+                cleaned_message = [word for word in str(message.content).split() if word not in word_ignore_list]
+                cleaned_message = " ".join(cleaned_message)
 
-                    if cleaned_message != str(message.content):
-                        print(f'# Cleaned message: {cleaned_message}')
+                if cleaned_message != str(message.content):
+                    print(f'# Cleaned message: {cleaned_message}')
 
-                    detection = await translator.detect(cleaned_message)
-                    if detection.lang != destination_language and float(detection.confidence) > 0.85:
-                        translation = await translator.translate(cleaned_message, dest=destination_language)
-                        print(f"{detection} | {translation}")
-                        await message.channel.send(f'autotranslate | src={detection.lang} | {message.author.name}: "{translation.text}"')
-                    else:
-                        if detection.confidence < 0.85:
-                            print(f'## Unable to determine language ##: {message.content}')
+                detection = translator.detect(cleaned_message)
+                if detection.lang != destination_language and float(detection.confidence) > 0.85:
+                    translation = translator.translate(cleaned_message, dest=destination_language)
+                    print(f"{detection} | {translation}")
+                    await message.channel.send(f'autotranslate | src={detection.lang} | {message.author.name}: "{translation.text}"')
+                else:
+                    if detection.confidence < 0.85:
+                        print(f'## Unable to determine language ##: {message.content}')
             except Exception as e:
                 print(e)
 
@@ -139,39 +139,39 @@ class Bot(commands.Bot):
     async def translate(self, ctx: commands.Context):
         global previous_message
 
-        async with Translator() as translator:
+        translator = Translator()
 
-            arg_tokens = previous_message.split()
-            if previous_message.split()[0] == "!translate":
-                arg_tokens = previous_message.split()[1:]
-            
-            author = ctx.author.name
-            if "to:" in arg_tokens[0]:
-                to_lang = arg_tokens[0].split(':')[1]
-                subject = " ".join(arg_tokens[1:])
-                print(f"Translating {subject} | to {to_lang} ")
-                try:
-                    translated = await translator.translate(subject, dest=to_lang)
-                    text = translated.text
-                    new_message = f'[Translated by {author} | dest={to_lang}] - "{text}"'
-                    await ctx.send(new_message[:499])
-                except Exception as e:
-                    if "invalid destination language" in str(e):
-                        await ctx.send(
-                            f"Unknown destination language. "
-                            f"A list of codes can be found at: https://sites.google.com/site/opti365/translate_codes")
-                        return
-                    else:
-                        print(e)
-
-            else:
-                subject = " ".join(arg_tokens)
-                print(f"Translating {subject} | to en ")
-                translated = await translator.translate(subject, dest='en')
-                src = translated.src
+        arg_tokens = previous_message.split()
+        if previous_message.split()[0] == "!translate":
+            arg_tokens = previous_message.split()[1:]
+        
+        author = ctx.author.name
+        if "to:" in arg_tokens[0]:
+            to_lang = arg_tokens[0].split(':')[1]
+            subject = " ".join(arg_tokens[1:])
+            print(f'Translating "{subject}" | to: {to_lang} ')
+            try:
+                translated = translator.translate(subject, dest=to_lang)
                 text = translated.text
-                new_message = f'[Translated by {author} | src={src}] - "{text}"'
+                new_message = f'[Translated by {author} | dest={to_lang}] - "{text}"'
                 await ctx.send(new_message[:499])
+            except Exception as e:
+                if "invalid destination language" in str(e):
+                    await ctx.send(
+                        f"Unknown destination language. "
+                        f"A list of codes can be found at: https://sites.google.com/site/opti365/translate_codes")
+                    return
+                else:
+                    print(e)
+
+        else:
+            subject = " ".join(arg_tokens)
+            print(f'Translating "{subject}" | to: en ')
+            translated = translator.translate(subject, dest='en')
+            src = translated.src
+            text = translated.text
+            new_message = f'[Translated by {author} | src={src}] - "{text}"'
+            await ctx.send(new_message[:499])
 
 
 def fetch_channel_emotes(channel_id, channel_name):
