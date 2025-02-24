@@ -1,4 +1,4 @@
 twitchio==2.10.0
 requests
-googletrans
+googletrans==3.1.0a0
 beautifulsoup4
