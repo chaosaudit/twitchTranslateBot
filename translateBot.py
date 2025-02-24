@@ -2,6 +2,7 @@ from twitchio.ext import commands
 from googletrans import Translator
 import requests
 import argparse
+import json
 
 parser = argparse.ArgumentParser(
                     prog='https://github.com/chaosaudit/twitchTranslateBot',
@@ -60,11 +61,13 @@ class Bot(commands.Bot):
         print(f'{len(global_emotes)} global emotes added to ignore list.')
 
         fetch_global_bttv_emotes()
+        fetch_global_ffz_emotes()
 
         for channel_name in channels:
             channel = await self.fetch_channel(channel_name)
             fetch_channel_emotes(channel.user.id, channel_name)
             fetch_channel_bttv_emotes(channel_name)
+            fetch_channel_ffz_emotes(channel.user.id, channel_name)
 
         print(f'{len(word_ignore_list)} total ignored words')
         print(f'\n##### awaiting messages #####\n')
@@ -194,7 +197,7 @@ def fetch_channel_emotes(channel_id, channel_name):
         if emote not in word_ignore_list:
             word_ignore_list.append(emote)
 
-    print(f'{len(channel_emotes)} emotes added to ignore list from channel: {channel_name}')
+    print(f'{len(channel_emotes)} twitch emotes added to ignore list from channel: {channel_name}')
     
 
 def fetch_global_bttv_emotes():
@@ -215,7 +218,26 @@ def fetch_channel_bttv_emotes(channel_name):
         if emote not in word_ignore_list:
             word_ignore_list.append(emote)
     print(f'{len(emotes)} bttv emotes added to ignore list from channel: {channel_name}')
-    
+
+def fetch_global_ffz_emotes():
+    global word_ignore_list
+    response = requests.get('https://api.frankerfacez.com/v1/set/global/ids').json()
+    for set in response['sets']:
+        emotes = [emote['name'] for emote in response["sets"][set]["emoticons"]]
+        for emote in emotes:
+            if (emote) not in word_ignore_list:
+                word_ignore_list.append(emote)
+    print(f'{len(emotes)} global ffz emotes added to ignore list.')
+
+def fetch_channel_ffz_emotes(channel_id, channel_name):
+    response = requests.get(f"https://api.frankerfacez.com/v1/room/id/{channel_id}").json()
+    for set in response['sets']:
+        emotes = [emote['name'] for emote in response["sets"][set]["emoticons"]]
+        for emote in emotes:
+            if (emote) not in word_ignore_list:
+                word_ignore_list.append(emote)
+    print(f'{len(emotes)} ffz emotes added to ignore list for channel: {channel_name}')
+
 
 bot = Bot()
 bot.run()
