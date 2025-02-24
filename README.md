@@ -13,13 +13,14 @@ You will need an access token, create a new twitch account for the bot to use an
 
 # Usage
 
-Clone or download the git repo
+Clone or download the git repo and create a python virtual environment
 
 ```
 git clone https://github.com/chaosaudit/twitchTranslateBot
 cd twitchTranslateBot
-pip install -r requirements.txt
-python3 translateBot.py -a <access_token> -c <channel>
+python3 -m venv myenv
+./myenv/bin/pip install -r requirements.txt
+./myenv/bin/python3 translateBot.py -a <access_token> -c <channel>
 ```
 The bot will not currently work with twitchio 3.
 

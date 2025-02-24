@@ -1,5 +1,6 @@
 from twitchio.ext import commands
 from googletrans import Translator
+from bs4 import BeautifulSoup
 import requests
 import argparse
 import json
@@ -28,7 +29,7 @@ destination_language = 'en'
 # Any words added to this list will be stripped from any message before language detection / translation. 
 # Can be used to ignore words that often cause a mistranslation, emote names, usernames etc...
 
-word_ignore_list = []
+word_ignore_list = set()
 
 
 # Keeping track of the message that was sent before the current one.
@@ -50,6 +51,7 @@ class Bot(commands.Bot):
             )
 
     async def event_ready(self):
+        global word_ignore_list
         print(f'\nLogged in as | {self.nick}')
         print(f'User id is | {self.user_id}\n')
 
@@ -57,7 +59,7 @@ class Bot(commands.Bot):
         # Grabbing all global / channel emotes to add to ignore list.
         global_emotes = await self.fetch_global_emotes()
         for emote in global_emotes:
-            word_ignore_list.append(emote.name)
+            word_ignore_list.add(emote.name)
         print(f'{len(global_emotes)} global emotes added to ignore list.')
 
         fetch_global_bttv_emotes()
@@ -186,37 +188,31 @@ def fetch_channel_emotes(channel_id, channel_name):
                 '1-Year Subscriber', '2-Year Subscriber']
     
     page = requests.get(f'https://twitch-tools.rootonline.de/emotes.php?channel_id={channel_id}')
+    soup = BeautifulSoup(page.text, 'html.parser')
     channel_emotes = []
-    for line in page.text.split('\n'):
-        if 'class="mt-2 text-center"' in line:
-            emote_title = line.split('">')[1].split('<')[0]
-            if emote_title not in default_badge_titles:
-                channel_emotes.append(emote_title)
-    
-    for emote in channel_emotes:
-        if emote not in word_ignore_list:
-            word_ignore_list.append(emote)
 
+    for emote in soup.find_all('div', class_='mt-2 text-center'):
+        emote_title = emote.text.strip()
+        if emote_title not in default_badge_titles:
+            channel_emotes.append(emote_title)
+
+    for emote in channel_emotes:
+        word_ignore_list.add(emote)
     print(f'{len(channel_emotes)} twitch emotes added to ignore list from channel: {channel_name}')
     
-
 def fetch_global_bttv_emotes():
     global word_ignore_list
-    # Generate list of global bttv emotes.
     response = requests.get('https://api.betterttv.net/3/cached/emotes/global').json()
     for emote in response:
-        if emote['code'] not in word_ignore_list:
-            word_ignore_list.append(emote['code'])
+        word_ignore_list.add(emote['code'])
     print(f'{len(response)} global bttv emotes added to ignore list')
-
 
 def fetch_channel_bttv_emotes(channel_name):
     global word_ignore_list
     response = requests.get(f'https://twitch.center/customapi/bttvemotes?channel={channel_name}').text
     emotes = response.split()
     for emote in emotes:
-        if emote not in word_ignore_list:
-            word_ignore_list.append(emote)
+        word_ignore_list.add(emote)
     print(f'{len(emotes)} bttv emotes added to ignore list from channel: {channel_name}')
 
 def fetch_global_ffz_emotes():
@@ -225,8 +221,7 @@ def fetch_global_ffz_emotes():
     for set in response['sets']:
         emotes = [emote['name'] for emote in response["sets"][set]["emoticons"]]
         for emote in emotes:
-            if (emote) not in word_ignore_list:
-                word_ignore_list.append(emote)
+            word_ignore_list.add(emote)
     print(f'{len(emotes)} global ffz emotes added to ignore list.')
 
 def fetch_channel_ffz_emotes(channel_id, channel_name):
@@ -234,8 +229,7 @@ def fetch_channel_ffz_emotes(channel_id, channel_name):
     for set in response['sets']:
         emotes = [emote['name'] for emote in response["sets"][set]["emoticons"]]
         for emote in emotes:
-            if (emote) not in word_ignore_list:
-                word_ignore_list.append(emote)
+            word_ignore_list.add(emote)                
     print(f'{len(emotes)} ffz emotes added to ignore list for channel: {channel_name}')
 
 
