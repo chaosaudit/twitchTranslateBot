@@ -28,7 +28,7 @@ language_two = "de"
 # Any words added to this list will be stripped from any message before language detection / translation. 
 # Can be used to ignore words that often cause a mistranslation, emote names, usernames etc...
 
-word_ignore_list = []
+word_ignore_list = set()
 
 
 # Keeping track of the message that was sent before the current one.
@@ -57,7 +57,7 @@ class Bot(commands.Bot):
         # Grabbing all global / channel emotes to add to ignore list.
         global_emotes = await self.fetch_global_emotes()
         for emote in global_emotes:
-            word_ignore_list.append(emote.name)
+            word_ignore_list.add(emote.name)
         print(f'{len(global_emotes)} global emotes added to ignore list.')
 
         fetch_global_bttv_emotes()
@@ -195,7 +195,7 @@ def fetch_channel_emotes(channel_id, channel_name):
     
     for emote in channel_emotes:
         if emote not in word_ignore_list:
-            word_ignore_list.append(emote)
+            word_ignore_list.add(emote)
 
     print(f'{len(channel_emotes)} emotes added to ignore list from channel: {channel_name}')
     
@@ -206,7 +206,7 @@ def fetch_global_bttv_emotes():
     response = requests.get('https://api.betterttv.net/3/cached/emotes/global').json()
     for emote in response:
         if emote['code'] not in word_ignore_list:
-            word_ignore_list.append(emote['code'])
+            word_ignore_list.add(emote['code'])
     print(f'{len(response)} global bttv emotes added to ignore list')
 
 
@@ -216,8 +216,25 @@ def fetch_channel_bttv_emotes(channel_name):
     emotes = response.split()
     for emote in emotes:
         if emote not in word_ignore_list:
-            word_ignore_list.append(emote)
+            word_ignore_list.add(emote)
     print(f'{len(emotes)} bttv emotes added to ignore list from channel: {channel_name}')
+
+def fetch_global_ffz_emotes():
+    global word_ignore_list
+    response = requests.get('https://api.frankerfacez.com/v1/set/global/ids').json()
+    for set in response['sets']:
+        emotes = [emote['name'] for emote in response["sets"][set]["emoticons"]]
+        for emote in emotes:
+            word_ignore_list.add(emote)
+    print(f'{len(emotes)} global ffz emotes added to ignore list.')
+
+def fetch_channel_ffz_emotes(channel_id, channel_name):
+    response = requests.get(f"https://api.frankerfacez.com/v1/room/id/{channel_id}").json()
+    for set in response['sets']:
+        emotes = [emote['name'] for emote in response["sets"][set]["emoticons"]]
+        for emote in emotes:
+            word_ignore_list.add(emote)                
+    print(f'{len(emotes)} ffz emotes added to ignore list for channel: {channel_name}')
     
 
 bot = Bot()
