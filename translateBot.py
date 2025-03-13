@@ -3,7 +3,6 @@ from googletrans import Translator
 from bs4 import BeautifulSoup
 import requests
 import argparse
-import json
 
 parser = argparse.ArgumentParser(
                     prog='https://github.com/chaosaudit/twitchTranslateBot',
@@ -28,7 +27,6 @@ destination_language = 'en'
 # words can also be added manually here.
 # Any words added to this list will be stripped from any message before language detection / translation. 
 # Can be used to ignore words that often cause a mistranslation, emote names, usernames etc...
-
 word_ignore_list = set()
 
 
@@ -92,14 +90,16 @@ class Bot(commands.Bot):
         if statusAutotranslate and str(message.content).split()[0] != '!translate':
             try:
                 translator = Translator()
-                cleaned_message = [word for word in str(message.content).split() if word not in word_ignore_list]
+                cleaned_message = [word for word in str(message.content).split() if ((word not in word_ignore_list) and (word[0] != '@'))]
+                if len(cleaned_message) < 4:
+                    return
                 cleaned_message = " ".join(cleaned_message)
 
                 if cleaned_message != str(message.content):
                     print(f'# Cleaned message: {cleaned_message}')
 
                 detection = translator.detect(cleaned_message)
-                if detection.lang != destination_language and float(detection.confidence) > 0.85:
+                if detection.lang != destination_language and float(detection.confidence) > 0.90:
                     translation = translator.translate(cleaned_message, dest=destination_language)
                     print(f"{detection} | {translation}")
                     await message.channel.send(f'autotranslate | src={detection.lang} | {message.author.name}: "{translation.text}"')
