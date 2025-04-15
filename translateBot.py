@@ -116,7 +116,7 @@ class Bot(commands.Bot):
     @commands.command(name="autotranslate")
     async def autotranslate(self, ctx: commands.Context):
         global statusAutotranslate
-        arg_tokens = ctx.message.content.split()
+        arg_tokens = str(ctx.message.content).split()
         if len(arg_tokens) == 1:
             if statusAutotranslate:
                 await ctx.send(f"autotranslate is currently [ACTIVE]. '!autotranslate off' to turn off.")
