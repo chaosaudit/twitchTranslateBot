@@ -113,7 +113,7 @@ class Bot(commands.Bot):
         await self.handle_commands(message)
 
     # !autotranslate command to show the status of auto function and allow it to be turned on or off by moderators.
-    @commands.command()
+    @commands.command(name="autotranslate")
     async def autotranslate(self, ctx: commands.Context):
         global statusAutotranslate
         arg_tokens = ctx.message.content.split()
